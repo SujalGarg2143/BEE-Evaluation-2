@@ -6,7 +6,7 @@ dotenv.config();
 async function connectDB() {
     try {
         await mongoose.connect(process.env.MONGO_URI, {
-            dbName: "ticketReservation", // Define the database name separately
+            dbName: "TicketReservation", // Define the database name separately
             useNewUrlParser: true,
             useUnifiedTopology: true
         });

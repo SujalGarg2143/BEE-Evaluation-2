@@ -3,7 +3,8 @@ import fs from "fs";
 import connectDB from "./database/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import dotenv from "dotenv";
-import nodemailer from "nodemailer"; // ✅ Added for email
+import nodemailer from "nodemailer"; 
+import morgan from "morgan";
 
 dotenv.config();
 
@@ -12,6 +13,9 @@ const port = process.env.PORT;
 
 connectDB();
 
+const logStream = fs.createWriteStream('access.log', { flags: 'a' });
+
+app.use(morgan("combined",{stream: logStream}));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("public"));
@@ -93,6 +97,16 @@ app.post("/pay", (req, res) => {
 });
 
 app.get("/login", (req, res) => res.render("login"));
+
+app.get(/.*/,(req,res,next)=>{
+    const error = new Error("Invalid request");
+    error.status = 404;
+    return next(error);
+})
+
+app.use((err,req,res,next)=>{
+    res.status(err.status).json({success: false, message: err.message});
+})
 
 app.listen(port, () => 
     console.log(`Server running on port ${port}`)
