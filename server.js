@@ -3,7 +3,7 @@ import fs from "fs";
 import connectDB from "./database/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import dotenv from "dotenv";
-import nodemailer from "nodemailer"; 
+import nodemailer from "nodemailer";
 import morgan from "morgan";
 
 dotenv.config();
@@ -15,13 +15,13 @@ connectDB();
 
 const logStream = fs.createWriteStream('access.log', { flags: 'a' });
 
-app.use(morgan("combined",{stream: logStream}));
+app.use(morgan("combined", { stream: logStream }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static("public"));
 
 app.set('view engine', 'ejs');
-app.use("/api/auth", authRoutes); 
+app.use("/api/auth", authRoutes);
 
 const movies = JSON.parse(fs.readFileSync("./data/movies.json"), "utf8");
 
@@ -83,12 +83,16 @@ app.get('/book/:id', (req, res) => {
 });
 
 app.post("/pay", (req, res) => {
-    const { email, movieId } = req.body;
-    if (!email || !movieId) return res.status(400).json({ message: "Email and movieId are required" });
+    const { email, movieTitle } = req.body;
+    if (!email || !movieTitle) {
+        return res.status(400).json({ message: "Email and movieTitle are required" });
+    }
 
-    const movie = movies[movieId.replace(/%20/g, " ")];
-    if (!movie) return res.status(404).json({ message: "Movie not found" });
-
+    const movie = movies[movieTitle];
+    if (!movie) {
+        return res.status(404).json({ message: "Movie not found" });
+    }
+    
     console.log(`Payment initiated for ${email}`);
 
     sendBookingConfirmation(email, movie); // ✅ Send confirmation email
@@ -98,16 +102,16 @@ app.post("/pay", (req, res) => {
 
 app.get("/login", (req, res) => res.render("login"));
 
-app.get(/.*/,(req,res,next)=>{
+app.get(/.*/, (req, res, next) => {
     const error = new Error("Invalid request");
     error.status = 404;
     return next(error);
 })
 
-app.use((err,req,res,next)=>{
-    res.status(err.status).json({success: false, message: err.message});
+app.use((err, req, res, next) => {
+    res.status(err.status).json({ success: false, message: err.message });
 })
 
-app.listen(port, () => 
+app.listen(port, () =>
     console.log(`Server running on port ${port}`)
 );
